@@ -7,6 +7,7 @@ import EmployeesPage from "./pages/dashboard/employee/EmployeesPage";
 import TasksPage from "./pages/dashboard/tasks/TasksPage";
 import EditDepartment from "./pages/dashboard/overview/EditDepartment";
 import { Toaster } from "./components/ui/sonner";
+import PrivateRoute from "./lib/PrivateRoute";
 export default function App() {
   return (
     <>
@@ -17,7 +18,7 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Private Routs */}
-          <Route path="/overview" element={<OverviewPage />} />
+          <Route path="/overview" element={<PrivateRoute><OverviewPage /></PrivateRoute>} />
           <Route path="/edit-department/:id" element={<EditDepartment />} />
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/tasks" element={<TasksPage />} />
