@@ -17,7 +17,6 @@ import { Plus } from "lucide-react";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,7 +27,7 @@ import { toast } from "sonner";
 
 const formSchema = z.object({
   username: z.string().min(2, {
-    message: "username name must be at least 2 characters.",
+    message: "Username name must be at least 2 characters.",
   }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z
@@ -45,7 +44,6 @@ function CreateEmployeeDialog() {
     toast.success("Success", {
       description: "Employee has ben created successfuly",
     });
-    console.log(values);
   }
   return (
     <Dialog>

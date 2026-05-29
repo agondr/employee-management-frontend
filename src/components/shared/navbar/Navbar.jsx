@@ -4,7 +4,7 @@ import DropDownAvatar from "./DropDownAvatar";
 
 const Navbar = () => {
   const navLinks = [
-    { path: "/overview", label: "Overwiev" },
+    { path: "/overview", label: "Overview" },
     { path: "/employees", label: "Employees" },
     { path: "/tasks", label: "Tasks" },
   ];

@@ -10,7 +10,7 @@ const Aside = () => {
           WorkForce Pro
         </h1>
         <p className="text-white">The must CRM in the world!</p>
-        <Button variant={"secondary"} className={"mt-3"}>
+        <Button variant={"secondary"} className="mt-3" asChild>
           <Link to="/">Home Page</Link>
         </Button>
       </div>
