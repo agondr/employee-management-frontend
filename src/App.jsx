@@ -10,7 +10,7 @@ import { Toaster } from "./components/ui/sonner";
 export default function App() {
   return (
     <>
-      <Router>
+      <Router basename="/employee-management-frontend">
         <Routes>
           <Route path="/" element={<LandingPages />} />
           <Route path="/login" element={<LoginPage />} />
