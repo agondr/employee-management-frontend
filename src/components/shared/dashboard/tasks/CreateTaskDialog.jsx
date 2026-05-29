@@ -17,7 +17,6 @@ import { MoveDownRight, MoveRight, MoveUpRight, Plus } from "lucide-react";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -56,7 +55,6 @@ function CreateTaskDialog() {
     toast.success("Success", {
       description: "Employee has ben created successfuly",
     });
-    console.log(values);
   }
   return (
     <Dialog>

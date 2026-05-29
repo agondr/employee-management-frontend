@@ -25,13 +25,9 @@ function DepartmentsList({ isListView }) {
         if (!response.ok) {
           throw new Error("Failed to fetch departments");
         }
-
         const data = await response.json();
-
         setDepartments(data);
-        console.log(data);
       } catch (error) {
-        console.log(error.message);
         setError(error.message || error);
       } finally {
         setLoading(false);

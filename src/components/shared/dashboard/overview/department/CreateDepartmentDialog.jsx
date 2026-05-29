@@ -17,7 +17,6 @@ import { Plus } from "lucide-react";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -41,7 +40,6 @@ function CreateDepartmentDialog() {
     toast.success("Success", {
       description: "Department has ben created successfuly",
     });
-    console.log(values);
   }
   return (
     <Dialog>
