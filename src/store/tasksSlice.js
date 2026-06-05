@@ -2,12 +2,40 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiFetch } from "@/lib/apiFetch";
 
 const getTaskId = (task) => task?.id ?? task?.task_id;
+const defaultPagination = {
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+};
+
+const buildTasksQuery = (params = {}) => {
+  const searchParams = new URLSearchParams();
+  const allowedKeys = [
+    "page",
+    "limit",
+    "search",
+    "status",
+    "priority",
+    "assignedUserId",
+  ];
+
+  allowedKeys.forEach((key) => {
+    const value = params[key];
+    if (value !== undefined && value !== null && value !== "" && value !== "all") {
+      searchParams.set(key, value);
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : "";
+};
 
 export const fetchTasks = createAsyncThunk(
-  "tasks/",
-  async (_, { dispatch, rejectWithValue }) => {
+  "tasks/fetchTasks",
+  async (params = {}, { dispatch, rejectWithValue }) => {
     try {
-      const data = await apiFetch("/api/tasks", {}, dispatch);
+      const data = await apiFetch(`/api/tasks${buildTasksQuery(params)}`, {}, dispatch);
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -108,13 +136,18 @@ const tasksSlice = createSlice({
   name: "tasks",
   initialState: {
     data: [],
+    pagination: defaultPagination,
     loading: false,
     error: null,
     hasFetched: false,
   },
   reducers: {
     addTask: (state, action) => {
-      state.data.push(action.payload);
+      state.pagination.total += 1;
+      state.pagination.totalPages = Math.ceil(
+        state.pagination.total / state.pagination.limit,
+      );
+      state.data = [action.payload, ...state.data].slice(0, state.pagination.limit);
     },
 
     updateTask: (state, action) => {
@@ -141,7 +174,8 @@ const tasksSlice = createSlice({
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.loading = false;
         state.hasFetched = true;
-        state.data = action.payload;
+        state.data = action.payload?.data || [];
+        state.pagination = action.payload?.pagination || defaultPagination;
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
@@ -187,6 +221,10 @@ const tasksSlice = createSlice({
       .addCase(deleteTaskById.fulfilled, (state, action) => {
         state.data = state.data.filter(
           (task) => getTaskId(task) !== action.payload.taskId,
+        );
+        state.pagination.total = Math.max(0, state.pagination.total - 1);
+        state.pagination.totalPages = Math.ceil(
+          state.pagination.total / state.pagination.limit,
         );
       });
   },

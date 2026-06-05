@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +32,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PageSizeSelect from "@/components/shared/table/PageSizeSelect";
+import PaginationControls from "@/components/shared/table/PaginationControls";
+import TableSearchInput from "@/components/shared/table/TableSearchInput";
 import { TaskUsersMultiSelect } from "./TaskUsersMultiSelect";
 import { TaskStatusDropdown } from "./TaskStatusDropdown";
 import { TaskPriorityDropdown } from "./TaskPriorityDropdown";
@@ -193,29 +196,21 @@ function DeleteTaskButton({ task, disabled, onDelete }) {
   );
 }
 
-const TasksList = ({ tasks = [], employees = [], loading, error }) => {
+const TasksList = ({
+  tasks = [],
+  employees = [],
+  loading,
+  error,
+  filters,
+  pagination,
+  onFilterChange,
+  onLimitChange,
+  onPageChange,
+}) => {
   const dispatch = useDispatch();
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [assignedUserFilter, setAssignedUserFilter] = useState("all");
   const [updatingTaskIds, setUpdatingTaskIds] = useState([]);
   const [assigningTaskIds, setAssigningTaskIds] = useState([]);
-
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      const matchesStatus =
-        statusFilter === "all" || task.status === statusFilter;
-      const matchesPriority =
-        priorityFilter === "all" || task.priority === priorityFilter;
-      const matchesAssignedUser =
-        assignedUserFilter === "all" ||
-        getAssignedUserIds(task).some(
-          (userId) => String(userId) === assignedUserFilter,
-        );
-
-      return matchesStatus && matchesPriority && matchesAssignedUser;
-    });
-  }, [assignedUserFilter, priorityFilter, statusFilter, tasks]);
+  const pageStart = ((pagination?.page || 1) - 1) * (pagination?.limit || 10);
 
   const setTaskUpdating = (taskId, updating) => {
     setUpdatingTaskIds((current) =>
@@ -279,19 +274,31 @@ const TasksList = ({ tasks = [], employees = [], loading, error }) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <TableSearchInput
+          value={filters.search}
+          placeholder="Search tasks..."
+          onChange={(value) => onFilterChange("search", value)}
+        />
+
+        <Select
+          value={filters.status}
+          onValueChange={(value) => onFilterChange("status", value)}
+        >
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="todo">ToDo</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="done">Done</SelectItem>
+            <SelectItem value="todo">todo</SelectItem>
+            <SelectItem value="in-progress">in-progress</SelectItem>
+            <SelectItem value="done">done</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+        <Select
+          value={filters.priority}
+          onValueChange={(value) => onFilterChange("priority", value)}
+        >
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
@@ -303,22 +310,24 @@ const TasksList = ({ tasks = [], employees = [], loading, error }) => {
           </SelectContent>
         </Select>
 
-        <Select value={assignedUserFilter} onValueChange={setAssignedUserFilter}>
+        <Select
+          value={filters.assignedUserId}
+          onValueChange={(value) => onFilterChange("assignedUserId", value)}
+        >
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="Assigned user" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All users</SelectItem>
             {employees.map((employee) => (
-              <SelectItem
-                key={employee.user_id}
-                value={String(employee.user_id)}
-              >
+              <SelectItem key={employee.user_id} value={String(employee.user_id)}>
                 {employee.user_name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        <PageSizeSelect value={filters.limit} onChange={onLimitChange} />
       </div>
 
       <Table>
@@ -346,21 +355,21 @@ const TasksList = ({ tasks = [], employees = [], loading, error }) => {
                 {error}
               </TableCell>
             </TableRow>
-          ) : filteredTasks.length === 0 ? (
+          ) : tasks.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center">
                 No Tasks found.
               </TableCell>
             </TableRow>
           ) : (
-            filteredTasks.map((task, index) => {
+            tasks.map((task, index) => {
               const taskId = getTaskId(task);
               const isUpdating = updatingTaskIds.includes(taskId);
               const isAssigning = assigningTaskIds.includes(taskId);
 
               return (
                 <TableRow key={taskId || index}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{pageStart + index + 1}</TableCell>
                   <TableCell>
                     <div className="flex min-w-[240px] items-center gap-2">
                       <InlineTaskTitle
@@ -413,6 +422,18 @@ const TasksList = ({ tasks = [], employees = [], loading, error }) => {
           )}
         </TableBody>
       </Table>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {pagination?.total || 0} tasks found
+        </p>
+        <PaginationControls
+          page={pagination?.page || 1}
+          totalPages={pagination?.totalPages || 0}
+          disabled={loading}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 };
