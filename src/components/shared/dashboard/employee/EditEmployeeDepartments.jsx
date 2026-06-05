@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { updateEmployee } from "@/store/employeesSlice";
+import { moveDepartmentEmployee } from "@/store/departmentsSlice";
 
 const EditEmployeeDepartments = ({ userId,
     currentDepartmentName,
@@ -24,6 +25,9 @@ const EditEmployeeDepartments = ({ userId,
             if (!department) {
                 throw new Error("Selected department not found");
             }
+            const previousDepartment = departments.find(
+                (dept) => dept.name === selectedDepartment
+            );
             const newDepartmentId = department ? department.id : null;
             if (!newDepartmentId) {
                 throw new Error("Selected department does not have a valid ID");
@@ -42,6 +46,10 @@ const EditEmployeeDepartments = ({ userId,
 
             setSelectedDepartment(value);
             dispatch(updateEmployee({ user_id: userId, department_name: value }));
+            dispatch(moveDepartmentEmployee({
+                fromDepartmentId: previousDepartment?.id,
+                toDepartmentId: newDepartmentId,
+            }));
             onDepartmentUpdated(userId, newDepartmentId);
 
             toast.success("Success", {

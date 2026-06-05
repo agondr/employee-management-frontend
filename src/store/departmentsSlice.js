@@ -29,6 +29,42 @@ const departmentsSlice = createSlice({
         (department) => department.id !== action.payload,
       );
     },
+    updateDepartment: (state, action) => {
+      const updatedDepartment = action.payload;
+      const index = state.departments.findIndex(
+        (department) => department.id === updatedDepartment.id,
+      );
+
+      if (index !== -1) {
+        state.departments[index] = {
+          ...state.departments[index],
+          ...updatedDepartment,
+        };
+      }
+    },
+    moveDepartmentEmployee: (state, action) => {
+      const { fromDepartmentId, toDepartmentId } = action.payload;
+
+      if (String(fromDepartmentId) === String(toDepartmentId)) return;
+
+      const fromDepartment = state.departments.find(
+        (department) => String(department.id) === String(fromDepartmentId),
+      );
+      const toDepartment = state.departments.find(
+        (department) => String(department.id) === String(toDepartmentId),
+      );
+
+      if (fromDepartment) {
+        fromDepartment.employee_count = Math.max(
+          0,
+          Number(fromDepartment.employee_count || 0) - 1,
+        );
+      }
+
+      if (toDepartment) {
+        toDepartment.employee_count = Number(toDepartment.employee_count || 0) + 1;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -48,5 +84,10 @@ const departmentsSlice = createSlice({
   },
 });
 
-export const { addDepartment, deleteDepartment } = departmentsSlice.actions;
+export const {
+  addDepartment,
+  deleteDepartment,
+  updateDepartment,
+  moveDepartmentEmployee,
+} = departmentsSlice.actions;
 export default departmentsSlice.reducer;
