@@ -71,17 +71,32 @@ const statsSlice = createSlice({
         state.data.departments = Math.max(0, state.data.departments - 1);
       })
       .addCase(fetchEmployees.fulfilled, (state, action) => {
-        state.data.totalUsers = Array.isArray(action.payload)
-          ? action.payload.length
-          : state.data.totalUsers;
+        const filters = action.meta.arg || {};
+        const hasFilters = Boolean(filters.search || filters.status || filters.departmentId);
+        if (hasFilters) return;
+
+        state.data.totalUsers =
+          action.payload?.pagination?.total ??
+          (Array.isArray(action.payload) ? action.payload.length : state.data.totalUsers);
       })
       .addCase(addEmployees, (state) => {
         state.data.totalUsers += 1;
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
-        const tasks = Array.isArray(action.payload) ? action.payload : [];
-        state.data.totalTasks = tasks.length;
-        state.data.doneTasks = tasks.filter((task) => isDone(task.status)).length;
+        const filters = action.meta.arg || {};
+        const hasFilters = Boolean(
+          filters.search ||
+            filters.status ||
+            filters.priority ||
+            filters.assignedUserId,
+        );
+        if (hasFilters) return;
+
+        const tasks = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.data || [];
+        state.data.totalTasks =
+          action.payload?.pagination?.total ?? tasks.length;
       })
       .addCase(addTask, (state, action) => {
         state.data.totalTasks += 1;
