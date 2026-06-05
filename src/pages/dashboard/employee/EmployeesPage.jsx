@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Layout from "../Layout";
 import Header from "@/components/shared/dashboard/Header";
 import CreateEmployeeDialog from "@/components/shared/dashboard/employee/CreateEmployeeDialog";
@@ -7,24 +7,66 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "@/store/employeesSlice";
 import { toast } from "sonner";
 
+const initialFilters = {
+  page: 1,
+  limit: 10,
+  search: "",
+  status: "all",
+  departmentId: "all",
+};
+
 const EmployeesPage = () => {
   const dispatch = useDispatch();
+  const [filters, setFilters] = useState(initialFilters);
   const {
-    data: Employees,
+    data: employees,
     loading,
     error,
-    hasFetched,
+    pagination,
   } = useSelector((state) => state.employees);
 
   useEffect(() => {
-    if (!hasFetched) {
-      dispatch(fetchEmployees()).catch((error) => {
-        toast.error("Error", {
-          description: error || "Failed to fetch employees",
-        });
+    dispatch(fetchEmployees(filters)).catch((error) => {
+      toast.error("Error", {
+        description: error || "Failed to fetch employees",
       });
-    }
-  }, [dispatch, hasFetched]);
+    });
+  }, [dispatch, filters]);
+
+  const updateFilter = useCallback((key, value) => {
+    setFilters((current) => {
+      if (current[key] === value && current.page === 1) return current;
+
+      return {
+        ...current,
+        [key]: value,
+        page: 1,
+      };
+    });
+  }, []);
+
+  const updatePage = useCallback((page) => {
+    setFilters((current) => {
+      if (current.page === page) return current;
+
+      return {
+        ...current,
+        page,
+      };
+    });
+  }, []);
+
+  const updateLimit = useCallback((limit) => {
+    setFilters((current) => {
+      if (current.limit === limit && current.page === 1) return current;
+
+      return {
+        ...current,
+        limit,
+        page: 1,
+      };
+    });
+  }, []);
 
   return (
     <Layout>
@@ -34,7 +76,16 @@ const EmployeesPage = () => {
       >
         <CreateEmployeeDialog />
       </Header>
-      <EmployeesList employees={Employees} loading={loading} error={error} />
+      <EmployeesList
+        employees={employees}
+        loading={loading}
+        error={error}
+        filters={filters}
+        pagination={pagination}
+        onFilterChange={updateFilter}
+        onLimitChange={updateLimit}
+        onPageChange={updatePage}
+      />
     </Layout>
   );
 };

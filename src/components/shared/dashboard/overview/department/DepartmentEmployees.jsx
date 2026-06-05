@@ -22,6 +22,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { set } from "zod";
 import { useDispatch } from "react-redux";
+import { moveDepartmentEmployee } from "@/store/departmentsSlice";
+import { updateEmployee } from "@/store/employeesSlice";
 import { apiFetch } from "@/lib/apiFetch";
 
 function DepartmentEmployees() {
@@ -63,14 +65,14 @@ function DepartmentEmployees() {
         };
 
         fetchData();
-    }, [selectDepartmentId]);
+    }, [selectDepartmentId, dispatch]);
 
     const handleDepartmentChange = async (userId, newDepartmentId) => {
         try {
             await apiFetch(
-                "/api/departments",
+                "/api/employees/update-department",
                 {
-                    method: "POST",
+                    method: "PUT",
                     body: JSON.stringify({
                         user_id: userId,
                         department_id: newDepartmentId,
@@ -78,6 +80,19 @@ function DepartmentEmployees() {
                 },
                 dispatch
             );
+
+            const nextDepartment = departments.find(
+                (department) => String(department.id) === String(newDepartmentId)
+            );
+
+            dispatch(updateEmployee({
+                user_id: userId,
+                department_name: nextDepartment?.name || "Unassigned",
+            }));
+            dispatch(moveDepartmentEmployee({
+                fromDepartmentId: selectDepartmentId,
+                toDepartmentId: newDepartmentId,
+            }));
 
             toast.success("Department changed.", {
                 description: "Employee's department has been updated successfully.",

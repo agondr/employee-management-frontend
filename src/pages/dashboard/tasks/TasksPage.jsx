@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Layout from "../Layout";
 import Header from "@/components/shared/dashboard/Header";
 import CreateTaskDialog from "@/components/shared/dashboard/tasks/CreateTaskDialog";
@@ -7,30 +7,65 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks } from "@/store/tasksSlice";
 import { fetchEmployees } from "@/store/employeesSlice";
 
+const initialFilters = {
+  page: 1,
+  limit: 10,
+  search: "",
+  status: "all",
+  priority: "all",
+  assignedUserId: "all",
+};
+
 const TasksPage = () => {
   const dispatch = useDispatch();
-  const {
-    data: tasks,
-    loading,
-    error,
-    hasFetched: tasksFetched,
-  } = useSelector((state) => state.tasks);
-  const {
-    data: employees,
-    hasFetched: employeesFetched,
-  } = useSelector((state) => state.employees);
+  const [filters, setFilters] = useState(initialFilters);
+  const { data: tasks, loading, error, pagination } = useSelector(
+    (state) => state.tasks,
+  );
+  const { data: employees } = useSelector((state) => state.employees);
 
   useEffect(() => {
-    if (!tasksFetched) {
-      dispatch(fetchTasks());
-    }
-  }, [dispatch, tasksFetched]);
+    dispatch(fetchTasks(filters));
+  }, [dispatch, filters]);
 
   useEffect(() => {
-    if (!employeesFetched) {
-      dispatch(fetchEmployees());
-    }
-  }, [dispatch, employeesFetched]);
+    dispatch(fetchEmployees({ page: 1, limit: 50 }));
+  }, [dispatch]);
+
+  const updateFilter = useCallback((key, value) => {
+    setFilters((current) => {
+      if (current[key] === value && current.page === 1) return current;
+
+      return {
+        ...current,
+        [key]: value,
+        page: 1,
+      };
+    });
+  }, []);
+
+  const updatePage = useCallback((page) => {
+    setFilters((current) => {
+      if (current.page === page) return current;
+
+      return {
+        ...current,
+        page,
+      };
+    });
+  }, []);
+
+  const updateLimit = useCallback((limit) => {
+    setFilters((current) => {
+      if (current.limit === limit && current.page === 1) return current;
+
+      return {
+        ...current,
+        limit,
+        page: 1,
+      };
+    });
+  }, []);
 
   return (
     <Layout>
@@ -40,7 +75,17 @@ const TasksPage = () => {
       >
         <CreateTaskDialog />
       </Header>
-      <TasksList tasks={tasks} employees={employees} loading={loading} error={error} />
+      <TasksList
+        tasks={tasks}
+        employees={employees}
+        loading={loading}
+        error={error}
+        filters={filters}
+        pagination={pagination}
+        onFilterChange={updateFilter}
+        onLimitChange={updateLimit}
+        onPageChange={updatePage}
+      />
     </Layout>
   );
 };

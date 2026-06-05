@@ -25,6 +25,7 @@ import { useParams } from "react-router-dom";
 import { Check, Loader2 } from "lucide-react";
 import { apiFetch } from "@/lib/apiFetch";
 import { useDispatch } from "react-redux";
+import { updateDepartment } from "@/store/departmentsSlice";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -49,10 +50,7 @@ function EditDepartmentCard() {
     const fetchDepartment = async () => {
 
       try {
-        const result = await apiFetch(
-          `/api/departments/${id}`,
-          dispatch
-        );
+        const result = await apiFetch(`/api/departments/${id}`, {}, dispatch);
 
         form.reset({ name: result.name });
       } catch (error) {
@@ -76,6 +74,7 @@ function EditDepartmentCard() {
         dispatch
       );
 
+      dispatch(updateDepartment(result));
       toast.success("Success", {
         description: "Department updated successfully.",
       });
