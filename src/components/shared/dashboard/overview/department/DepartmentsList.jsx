@@ -7,34 +7,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchDepartments } from "@/store/departmentsSlice";
 import { Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import DeleteButton from "./DeleteButton";
 
 function DepartmentsList({ isListView }) {
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/departments/all`
-        );
+  const dispatch = useDispatch();
+  const { departments, loading, error, hasFetched } = useSelector(
+    (state) => state.departments,
+  );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch departments");
-        }
-        const data = await response.json();
-        setDepartments(data);
-      } catch (error) {
-        setError(error.message || error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDepartments();
-  }, []);
+  useEffect(() => {
+    if (!hasFetched) {
+      dispatch(fetchDepartments());
+    }
+  }, [dispatch, hasFetched]);
+
+  const handleDepartmentDelete = () => { };
   return (
     <div>
       {loading && <p className="text-center">Loading departments....</p>}
@@ -53,14 +45,20 @@ function DepartmentsList({ isListView }) {
               return (
                 <TableRow key={department.id}>
                   <TableCell>{department.name}</TableCell>
-                  <TableCell>{department.employee_list.length}</TableCell>
-                  <TableCell>
-                    <Button asChild>
+                  <TableCell>{department.employee_count || 0}</TableCell>
+                  <TableCell className="flex justify-end gap-2">
+                    <Button asChild
+                      aria-label="Edit Department" >
                       <Link to={`/edit-department/${department.id}`}>
                         <Pencil />
                       </Link>
                     </Button>
-                    <h1>Delete</h1>
+                    <DeleteButton
+                      aria-label="Delete department"
+                      departmentId={department.id}
+                      departmentName={department.name}
+                      onDelete={handleDepartmentDelete}
+                    />
                   </TableCell>
                 </TableRow>
               );
@@ -80,7 +78,7 @@ function DepartmentsList({ isListView }) {
                   {department.name}
                 </h2>
                 <p className="text-muted-foreground mb-4">
-                  Employee: {department.employee_list.length}
+                  Employee: {department.employee_count || 0}
                 </p>
                 <div className="flex justify-end gap-2">
                   <Button asChild>
@@ -88,7 +86,11 @@ function DepartmentsList({ isListView }) {
                       <Pencil />
                     </Link>
                   </Button>
-                  <h1>Delete</h1>
+                  <DeleteButton
+                    departmentId={department.id}
+                    departmentName={department.name}
+                    onDelete={handleDepartmentDelete}
+                  />
                 </div>
               </div>
             );

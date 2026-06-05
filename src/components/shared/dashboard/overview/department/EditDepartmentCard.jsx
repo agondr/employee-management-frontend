@@ -20,6 +20,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Check, Loader2 } from "lucide-react";
+import { apiFetch } from "@/lib/apiFetch";
+import { useDispatch } from "react-redux";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -28,6 +33,11 @@ const formSchema = z.object({
 });
 
 function EditDepartmentCard() {
+  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const dispatch = useDispatch();
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,13 +45,65 @@ function EditDepartmentCard() {
     },
   });
 
-  function onSubmit(values) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-    toast.success("Success", {
-      description: "Department",
-    });
+  useEffect(() => {
+    const fetchDepartment = async () => {
+
+      try {
+        const result = await apiFetch(
+          `/api/departments/${id}`,
+          dispatch
+        );
+
+        form.reset({ name: result.name });
+      } catch (error) {
+        toast.error("Error", {
+          description: error.message || "An error occurred while loading the department.",
+        });
+      }
+    };
+    fetchDepartment();
+  }, [id, form]);
+
+  const onSubmit = async (values) => {
+    setLoading(true);
+    try {
+      const result = await apiFetch(
+        `/api/departments/${id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(values),
+        },
+        dispatch
+      );
+
+      toast.success("Success", {
+        description: "Department updated successfully.",
+      });
+      form.reset({ name: result.name });
+    } catch (error) {
+      toast.error("Error", {
+        description: error.message || "An error occurred while updating the department.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+  if (notFound) {
+    return (
+      <Card className="lg:w-96 w-full text-red-500">
+        <CardHeader>
+          <CardTitle>Department Not Found</CardTitle>
+          <CardDescription>
+            The department you are trying to edit does not exist.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-red-500 font-bold">
+            Please check the department ID and try again.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
   return (
     <Card className="lg:w-96 w-full">
@@ -65,7 +127,9 @@ function EditDepartmentCard() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Update Department</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" /> : <Check className="w-4 h-4" />} Update Department
+            </Button>
           </form>
         </Form>
       </CardContent>

@@ -32,6 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { apiFetch } from "@/lib/apiFetch";
+import { addTask } from "@/store/tasksSlice";
+import { useSelector } from "react-redux";
+import { TaskUsersMultiSelect } from "./TaskUsersMultiSelect";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -43,18 +49,48 @@ const formSchema = z.object({
   priority: z.string({
     required_error: "Please select priority.",
   }),
-  assignedId: z.number(),
+  assignedUserIds: z.array(z.number()).optional().default([])
 });
 
 function CreateTaskDialog() {
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { data: employees } = useSelector((state) => state.employees);
   const form = useForm({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      status: "",
+      priority: "",
+      assignedUserIds: [],
+    },
   });
 
-  function onSubmit(values) {
-    toast.success("Success", {
-      description: "Employee has ben created successfuly",
-    });
+  const onSubmit = async (values) => {
+    setLoading(true);
+    try {
+      const result = await apiFetch(
+        "/api/tasks/create",
+        {
+          method: "POST",
+          body: JSON.stringify(values),
+        },
+        dispatch
+      );
+
+      dispatch(addTask(result));
+      toast.success("Success", {
+        description: "Task has ben created successfuly",
+      });
+      form.reset();
+    } catch (error) {
+
+      toast.error("Error", {
+        description: error.message || "Failed to create task",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
   return (
     <Dialog>
@@ -81,7 +117,7 @@ function CreateTaskDialog() {
                 <FormItem>
                   <FormLabel>Task title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task title" {...field} />
+                    <Input placeholder="Task title" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,17 +140,17 @@ function CreateTaskDialog() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Low">
+                      <SelectItem value="todo">
                         <MoveDownRight />
-                        Low
+                        ToDo
                       </SelectItem>
-                      <SelectItem value="Medium">
+                      <SelectItem value="in-progress">
                         <MoveRight />
-                        Medium
+                        InProgress
                       </SelectItem>
-                      <SelectItem value="Hight">
+                      <SelectItem value="done">
                         <MoveUpRight />
-                        Hight
+                        Done
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -159,12 +195,16 @@ function CreateTaskDialog() {
             />
             <FormField
               control={form.control}
-              name="assignedId"
+              name="assignedUserIds"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Assigned to</FormLabel>
                   <FormControl>
-                    <Input placeholder="Assigned to" {...field} />
+                    <TaskUsersMultiSelect
+                      employees={employees}
+                      value={field.value || []}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

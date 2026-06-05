@@ -13,6 +13,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z
   .object({
@@ -33,15 +35,34 @@ const formSchema = z
   });
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
   // Definimi i formes
   const form = useForm({
     resolver: zodResolver(formSchema),
   });
-  //   Funksioni i dërgimit të formës - Submitimi i formës
-  function onSubmit(values) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const onSubmit = async(data) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+      toast.success("Registration successful!", {
+        description: "You can now log in with your new account.",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast.error("Registration failed!", {
+        description: error.message,
+      });
+    }
   }
   return (
     // {/* Forma nga shadcn */}
@@ -64,6 +85,7 @@ const RegisterForm = () => {
               <FormControl>
                 <Input
                   placeholder="username"
+                  autoComplete="username"
                   {...field}
                   value={field.value || ""}
                 />
@@ -99,6 +121,7 @@ const RegisterForm = () => {
               <FormControl>
                 <Input
                   type={"password"}
+                  autoComplete="new-password"
                   placeholder="******"
                   {...field}
                   value={field.value || ""}
@@ -118,6 +141,7 @@ const RegisterForm = () => {
               <FormControl>
                 <Input
                   type={"password"}
+                  autoComplete="new-password"
                   placeholder="******"
                   {...field}
                   value={field.value || ""}

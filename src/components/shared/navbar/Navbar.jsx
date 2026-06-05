@@ -19,6 +19,7 @@ const Navbar = () => {
         {navLinks.map((link, index) => (
           <li key={index}>
             <NavLink
+              aria-label="User menu"
               to={link.path}
               className={({ isActive }) =>
                 isActive

@@ -2,6 +2,7 @@ import React from "react";
 import Layout from "../Layout";
 import Header from "@/components/shared/dashboard/Header";
 import EditDepartmentCard from "@/components/shared/dashboard/overview/department/EditDepartmentCard";
+import DepartmentEmployees from "@/components/shared/dashboard/overview/department/DepartmentEmployees";
 
 function EditDepartment() {
   return (
@@ -14,7 +15,7 @@ function EditDepartment() {
         <div>
           <EditDepartmentCard />
         </div>
-        <div className="w-full h-screen">Department Employees</div>
+        <div className="w-full h-screen"><DepartmentEmployees /></div>
       </div>
     </Layout>
   );

@@ -8,10 +8,12 @@ import TasksPage from "./pages/dashboard/tasks/TasksPage";
 import EditDepartment from "./pages/dashboard/overview/EditDepartment";
 import { Toaster } from "./components/ui/sonner";
 import PrivateRoute from "./lib/PrivateRoute";
+import AuthWatcher from "./lib/AuthWatcher";
 export default function App() {
   return (
     <>
       <Router basename="/employee-management-frontend">
+        <AuthWatcher />
         <Routes>
           <Route path="/" element={<LandingPages />} />
           <Route path="/login" element={<LoginPage />} />
@@ -19,9 +21,9 @@ export default function App() {
 
           {/* Private Routs */}
           <Route path="/overview" element={<PrivateRoute><OverviewPage /></PrivateRoute>} />
-          <Route path="/edit-department/:id" element={<EditDepartment />} />
-          <Route path="/employees" element={<EmployeesPage />} />
-          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/edit-department/:id" element={<PrivateRoute><EditDepartment /></PrivateRoute>} />
+          <Route path="/employees" element={<PrivateRoute><EmployeesPage /></PrivateRoute>} />
+          <Route path="/tasks" element={<PrivateRoute><TasksPage /></PrivateRoute>} />
         </Routes>
         <Toaster />
       </Router>

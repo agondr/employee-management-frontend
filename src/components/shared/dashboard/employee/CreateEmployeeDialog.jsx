@@ -24,6 +24,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
+import { addEmployees } from "@/store/employeesSlice";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -36,14 +40,43 @@ const formSchema = z.object({
 });
 
 function CreateEmployeeDialog() {
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const form = useForm({
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values) {
-    toast.success("Success", {
-      description: "Employee has ben created successfuly",
-    });
+  const onSubmit = async (values) => {
+    setLoading(true);
+    try {
+      const result = await apiFetch(
+        "/api/auth/register",
+        {
+          method: "POST",
+          body: JSON.stringify(values),
+        },
+        dispatch
+      );
+      const newEmployee = {
+        user_id: result.id,
+        user_name: result.username,
+        email: result.email,
+        status: result.status,
+        department_name: "Unassigned",
+      };
+      dispatch(addEmployees(newEmployee));
+
+      toast.success("Success", {
+        description: "Employee has ben created successfuly",
+      });
+      form.reset();
+    } catch (error) {
+      toast.error("Error", {
+        description: error.message || "Failed to create Employee",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
   return (
     <Dialog>
@@ -70,7 +103,7 @@ function CreateEmployeeDialog() {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Username" {...field} />
+                    <Input placeholder="Username" autoComplete="username" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -83,7 +116,7 @@ function CreateEmployeeDialog() {
                 <FormItem>
                   <FormLabel>E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder="email@example.com" {...field} />
+                    <Input placeholder="email@example.com" autoComplete="email" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -96,7 +129,7 @@ function CreateEmployeeDialog() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="password" {...field} />
+                    <Input type="password" placeholder="password" autoComplete="new-password" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
