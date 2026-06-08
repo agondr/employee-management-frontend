@@ -9,6 +9,15 @@ const defaultPagination = {
   totalPages: 0,
 };
 
+const defaultPaginationParams = {
+  page: 1,
+  limit: 10,
+  search: "",
+  status: "all",
+  priority: "all",
+  assignedUserId: "all",
+};
+
 const buildTasksQuery = (params = {}) => {
   const searchParams = new URLSearchParams();
   const allowedKeys = [
@@ -137,11 +146,21 @@ const tasksSlice = createSlice({
   initialState: {
     data: [],
     pagination: defaultPagination,
+    paginationParams: defaultPaginationParams,
     loading: false,
     error: null,
     hasFetched: false,
   },
   reducers: {
+    setTaskQueryParams: (state, action) => {
+      state.paginationParams = {
+        ...state.paginationParams,
+        ...action.payload,
+      };
+    },
+    resetTaskQueryParams: (state) => {
+      state.paginationParams = defaultPaginationParams;
+    },
     addTask: (state, action) => {
       state.pagination.total += 1;
       state.pagination.totalPages = Math.ceil(
@@ -230,6 +249,12 @@ const tasksSlice = createSlice({
   },
 });
 
-export const { addTask, updateTask, deleteTask } = tasksSlice.actions;
+export const {
+  addTask,
+  updateTask,
+  deleteTask,
+  setTaskQueryParams,
+  resetTaskQueryParams,
+} = tasksSlice.actions;
 
 export default tasksSlice.reducer;

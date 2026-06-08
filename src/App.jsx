@@ -6,6 +6,7 @@ import OverviewPage from "./pages/dashboard/overview/OverviewPage";
 import EmployeesPage from "./pages/dashboard/employee/EmployeesPage";
 import TasksPage from "./pages/dashboard/tasks/TasksPage";
 import EditDepartment from "./pages/dashboard/overview/EditDepartment";
+import AuditLogsPage from "./pages/dashboard/audit/AuditLogsPage";
 import { Toaster } from "./components/ui/sonner";
 import PrivateRoute from "./lib/PrivateRoute";
 import AuthWatcher from "./lib/AuthWatcher";
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/edit-department/:id" element={<PrivateRoute><EditDepartment /></PrivateRoute>} />
           <Route path="/employees" element={<PrivateRoute><EmployeesPage /></PrivateRoute>} />
           <Route path="/tasks" element={<PrivateRoute><TasksPage /></PrivateRoute>} />
+          <Route path="/dashboard/audit-logs" element={<PrivateRoute><AuditLogsPage /></PrivateRoute>} />
         </Routes>
         <Toaster />
       </Router>
