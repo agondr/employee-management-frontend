@@ -4,6 +4,7 @@ import departmentsReducer from "./departmentsSlice";
 import employeesReducer from "./employeesSlice";
 import tasksReducer from "./tasksSlice";
 import statsReducer from "./statsSlice";
+import auditLogsReducer from "./auditLogsSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -11,6 +12,7 @@ const store = configureStore({
     employees: employeesReducer,
     tasks: tasksReducer,
     stats: statsReducer,
+    auditLogs: auditLogsReducer,
   },
 });
 
